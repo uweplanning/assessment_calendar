@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Programmatic Assessment Calendar 2026-27</title>
+<style>
+:root{
+  --bg:#f6f6f4; --surface:#ffffff; --surface-2:#f0f0ed; --line:#e2e1dc; --line-2:#cfcec8;
+  --ink:#1c1c1a; --ink-2:#55544f; --ink-3:#8a8983;
+  --accent:#2a78d6; --accent-soft:#e3eefb; --accent-ink:#1c5cab;
+  --today:#b8541f; --radius:10px;
+  --font:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.45}
+button,select,input{font:inherit;color:inherit}
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+header.top{background:var(--surface);border-bottom:1px solid var(--line)}
+header.top .wrap{padding-top:26px;padding-bottom:0}
+h1{font-size:26px;line-height:1.2;margin:0;font-weight:650;letter-spacing:-.01em}
+.sub{margin:4px 0 0;color:var(--ink-2);font-size:15px}
+.tabs{display:flex;gap:4px;margin-top:22px}
+.tab{background:none;border:0;border-bottom:2px solid transparent;padding:10px 14px;cursor:pointer;color:var(--ink-2);font-weight:550}
+.tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--ink)}
+.tab:hover{color:var(--ink)}
+.tab:focus-visible,.btn:focus-visible,select:focus-visible,input:focus-visible,.mod:focus-visible,.dot:focus-visible,.chip:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+main.wrap{padding-top:24px;padding-bottom:60px}
+.panel[hidden]{display:none}
+
+/* controls */
+.controls{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px}
+.field{display:flex;flex-direction:column;gap:5px;min-width:200px}
+.field label{font-size:12px;font-weight:600;color:var(--ink-2);text-transform:uppercase;letter-spacing:.04em}
+select,input[type=search]{background:var(--surface);border:1px solid var(--line-2);border-radius:8px;padding:9px 12px;min-height:40px}
+select{padding-right:32px;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%2355544f' stroke-width='1.6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
+.spacer{flex:1}
+.btn{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line-2);background:var(--surface);border-radius:8px;padding:9px 14px;min-height:40px;cursor:pointer;font-weight:550}
+.btn:hover{background:var(--surface-2)}
+.btn svg{width:16px;height:16px}
+
+.summary{display:flex;flex-wrap:wrap;gap:12px;margin:18px 0}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:12px 16px;min-width:150px}
+.stat .k{font-size:12px;color:var(--ink-2);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.stat .v{font-size:22px;font-weight:650;margin-top:2px}
+.stat.next{flex:1;min-width:260px}
+.stat.next .v{font-size:16px;font-weight:600}
+.stat.next .m{color:var(--ink-2);font-size:14px}
+.stat.lead{min-width:190px}
+.stat.lead .v{font-size:15px;font-weight:600;line-height:1.35;margin-top:3px}
+.prog-row{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;margin-bottom:6px}
+.prog-row .pill{margin:0}
+.prog-row .pl{font-size:13px;color:var(--ink-2)}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius)}
+.sec-h{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:16px 18px 6px}
+.sec-h h2{font-size:17px;margin:0;font-weight:650}
+.sec-h .note{color:var(--ink-3);font-size:13px}
+
+/* timeline */
+.tl-scroll{overflow-x:auto;padding:4px 0 14px}
+.tl{--label:250px;min-width:940px;position:relative;padding:0 18px 20px}
+.tl-row{display:grid;grid-template-columns:var(--label) 1fr;align-items:center}
+.tl-head .tl-track{height:34px}
+.tl-label{padding:8px 14px 8px 0;font-size:13px;line-height:1.25;position:sticky;left:0;background:var(--surface);z-index:2}
+.tl-label .c{color:var(--ink-3);font-size:11.5px;font-variant-numeric:tabular-nums}
+.tl-track{position:relative;height:48px}
+.tl-body .tl-row+.tl-row .tl-track,.tl-body .tl-row+.tl-row .tl-label{border-top:1px solid var(--line)}
+.month{position:absolute;top:0;bottom:0;border-left:1px solid var(--line);font-size:12px;color:var(--ink-2);padding:8px 0 0 6px;white-space:nowrap}
+.month.alt{background:#fafaf8}
+.tl-grid{position:absolute;top:0;bottom:20px;right:18px;left:calc(18px + var(--label));pointer-events:none}
+.tl-grid .gl{position:absolute;top:34px;bottom:0;border-left:1px solid var(--line)}
+.tl-grid .band{position:absolute;top:34px;bottom:0;background:#fafaf8}
+.today{position:absolute;top:34px;bottom:0;border-left:2px dashed var(--today);z-index:1}
+.today span{position:absolute;bottom:-18px;left:4px;font-size:11px;font-weight:650;color:var(--today);background:var(--surface);padding:0 3px;border-radius:3px}
+.track-line{position:absolute;left:0;right:0;top:50%;border-top:1px solid var(--line-2)}
+.dot{position:absolute;top:50%;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;background:var(--accent);border:2px solid var(--surface);box-shadow:0 0 0 1px var(--accent);cursor:pointer;padding:0;z-index:3}
+.dot.past{background:var(--surface);box-shadow:0 0 0 1.5px var(--ink-3)}
+.dot:hover,.dot.hl{transform:scale(1.3)}
+.dlabel{position:absolute;top:calc(50% + 9px);transform:translateX(-50%);font-size:11px;color:var(--ink-2);white-space:nowrap;pointer-events:none;font-variant-numeric:tabular-nums}
+.tip{position:fixed;z-index:50;pointer-events:none;background:var(--ink);color:#fff;padding:9px 11px;border-radius:8px;font-size:13px;line-height:1.35;max-width:280px;box-shadow:0 6px 20px rgba(0,0,0,.18);opacity:0;transition:opacity .1s}
+.tip.on{opacity:1}
+.tip b{display:block;font-weight:650}
+.tip .s{color:#cfcec8}
+.legend{display:flex;gap:18px;flex-wrap:wrap;padding:4px 18px 16px;font-size:12.5px;color:var(--ink-2)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.lg-dot{width:12px;height:12px;border-radius:50%;background:var(--accent)}
+.lg-dot.past{background:var(--surface);box-shadow:0 0 0 1.5px var(--ink-3)}
+.lg-today{width:0;height:14px;border-left:2px dashed var(--today)}
+
+/* list */
+.list{margin-top:18px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-2);font-weight:600;padding:10px 12px;border-bottom:1px solid var(--line-2);background:var(--surface)}
+td{padding:11px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+tr.mrow td{background:var(--surface-2);font-weight:650;font-size:13px;padding:7px 12px;color:var(--ink-2);text-transform:uppercase;letter-spacing:.04em}
+tr.past td:not(.st){color:var(--ink-3)}
+tr.flash td{background:var(--accent-soft);transition:background .2s}
+td.date{white-space:nowrap;font-variant-numeric:tabular-nums;font-weight:600}
+td.date .wd{color:var(--ink-3);font-weight:500;margin-right:4px}
+.code{color:var(--ink-3);font-size:12.5px;font-variant-numeric:tabular-nums}
+.also{color:var(--ink-3);font-size:12.5px;margin-top:2px}
+.pill{display:inline-block;font-size:12px;padding:2px 8px;border-radius:999px;background:var(--surface-2);border:1px solid var(--line);white-space:nowrap}
+.pill.soon{background:var(--accent-soft);border-color:#b7d3f6;color:var(--accent-ink);font-weight:600}
+.pill.done{color:var(--ink-3)}
+.linkish{background:none;border:0;padding:0;cursor:pointer;text-align:left;font-weight:550;text-decoration:underline;text-decoration-color:var(--line-2);text-underline-offset:3px}
+.linkish:hover{text-decoration-color:var(--ink)}
+.empty{padding:40px;text-align:center;color:var(--ink-2)}
+
+/* modules tab */
+.mod-controls{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:18px}
+.mod-controls input{flex:1;min-width:240px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:22px}
+.chip{border:1px solid var(--line-2);background:var(--surface);border-radius:999px;padding:6px 13px;cursor:pointer;font-size:13.5px}
+.chip[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.prog{margin-bottom:28px}
+.prog h2{font-size:18px;margin:0 0 4px;font-weight:650}
+.prog .pm{color:var(--ink-3);font-size:13px;margin-bottom:12px}
+.note-box{background:var(--surface);border:1px solid var(--line-2);border-left:3px solid var(--ink);border-radius:8px;padding:12px 14px;font-size:14px;color:var(--ink-2);margin:6px 0 4px;max-width:820px}
+.note-box b{color:var(--ink)}
+.lvl{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-2);margin:14px 0 8px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.mod{display:flex;flex-direction:column;gap:6px;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:13px 14px;cursor:pointer;transition:border-color .12s,box-shadow .12s}
+.mod:hover{border-color:var(--line-2);box-shadow:0 2px 10px rgba(0,0,0,.06)}
+.mod .t{font-weight:600;line-height:1.3}
+.mod .meta{display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:12.5px;color:var(--ink-2)}
+.tag{font-size:11px;padding:1px 7px;border-radius:999px;border:1px solid var(--line-2);color:var(--ink-2)}
+
+/* modules tab: list + detail */
+.mod-layout{display:grid;grid-template-columns:minmax(270px,30%) 1fr;gap:18px;align-items:start}
+.mod-list{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:14px 10px 10px;position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto}
+.list-hint{margin:0 6px 12px;font-size:13px;color:var(--ink-2);font-weight:550}
+.mod-list .prog{margin:0 0 14px}
+.mod-list .prog h2{font-size:15px;margin:6px 6px 2px}
+.mod-list .pm{margin:0 6px 4px;font-size:12.5px;color:var(--ink-3)}
+.mod-list .lvl{margin:10px 6px 4px;font-size:11.5px}
+.mlist{list-style:none;margin:0;padding:0}
+.li{display:block;width:100%;text-align:left;background:none;border:0;border-left:3px solid transparent;border-radius:6px;padding:7px 8px 7px 9px;cursor:pointer}
+.li:hover{background:var(--surface-2)}
+.li[aria-current="true"]{background:var(--surface-2);border-left-color:var(--ink)}
+.li .t{display:block;font-weight:550;line-height:1.3;text-decoration:underline;text-decoration-color:var(--line-2);text-underline-offset:3px}
+.li[aria-current="true"] .t{text-decoration:none}
+.li .s{display:block;font-size:12px;color:var(--ink-3);margin-top:1px;font-variant-numeric:tabular-nums}
+.li:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.mod-detail{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);min-height:420px;position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto}
+.detail-empty{display:flex;gap:14px;align-items:flex-start;padding:28px;color:var(--ink-2);font-size:15px}
+.detail-empty svg{flex:none;width:26px;height:26px;color:var(--ink-3);margin-top:1px}
+.detail-empty p{margin:0;max-width:440px}
+.detail-empty b{color:var(--ink)}
+.inline-detail{border:1px solid var(--line-2);border-radius:var(--radius);margin:4px 0 10px;overflow:hidden}
+@media (max-width:860px){
+  .mod-layout{grid-template-columns:1fr}
+  .mod-list{position:static;max-height:none;overflow:visible}
+  .mod-detail{display:none}
+}
+.mc-h{padding:22px 24px 16px;border-bottom:1px solid var(--line);position:relative}
+.mc-h .code{font-size:13px}
+.mc-h h3{margin:4px 0 0;font-size:21px;line-height:1.25}
+.x{position:absolute;top:16px;right:16px;width:34px;height:34px;border-radius:8px;border:1px solid var(--line);background:var(--surface);cursor:pointer;font-size:18px;line-height:1}
+.x:hover{background:var(--surface-2)}
+.mc-b{padding:18px 24px 22px}
+.kv{display:grid;grid-template-columns:130px 1fr;gap:10px 14px;font-size:14px;margin-bottom:20px}
+.kv dt{color:var(--ink-2);font-weight:600;font-size:12.5px;text-transform:uppercase;letter-spacing:.04em;padding-top:2px}
+.kv dd{margin:0}
+.kv dd .pill{margin:0 4px 4px 0}
+.exam-note{background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:11px 14px;font-size:14px;color:var(--ink-2)}
+.exam-note b{color:var(--ink)}
+.exam-note .linkish{color:var(--ink);font-size:inherit}
+.desc{margin:0 0 22px;font-size:14.5px;line-height:1.55;color:var(--ink)}
+.mc-b h4{margin:0 0 10px;font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-2)}
+.hi{display:flex;gap:14px;padding:12px 0;border-top:1px solid var(--line)}
+.hi:first-of-type{border-top:0}
+.hi .cal{flex:none;width:54px;text-align:center;border:1px solid var(--line-2);border-radius:8px;overflow:hidden;font-variant-numeric:tabular-nums}
+.hi .cal .mo{background:var(--ink);color:#fff;font-size:11px;font-weight:650;text-transform:uppercase;padding:2px 0}
+.hi .cal .dd{font-size:20px;font-weight:650;padding:2px 0 0}
+.hi .cal .yy{font-size:10.5px;color:var(--ink-3);padding-bottom:3px}
+.hi.past .cal{opacity:.55}
+.hi .bd{flex:1}
+.hi .bd .a{font-weight:600}
+.hi .bd .s{font-size:13px;color:var(--ink-2)}
+.mc-f{padding:14px 24px;border-top:1px solid var(--line);display:flex;gap:10px;flex-wrap:wrap;background:var(--surface-2)}
+
+footer{padding-bottom:36px}
+.caveat{display:flex;gap:12px;align-items:flex-start;background:var(--surface);border:1px solid var(--line-2);border-radius:var(--radius);padding:14px 16px;color:var(--ink);font-size:14.5px}
+.caveat svg{flex:none;width:20px;height:20px;margin-top:1px;color:var(--ink-2)}
+.caveat p{margin:0}
+.credit{color:var(--ink-3);font-size:12.5px;margin:12px 2px 0}
+
+/* print */
+.print-only{display:none}
+@media print{
+  @page{size:A4 landscape;margin:12mm}
+  html,body{background:#fff;font-size:11pt}
+  .tabs,.controls,.no-print,#panel-modules,.tip{display:none!important}
+  footer{padding:10px 0 0}
+  .caveat{font-size:10pt;padding:8px 12px;break-inside:avoid}
+  header.top{border:0}
+  header.top .wrap{padding-top:0}
+  .print-only{display:block}
+  main{padding-top:8px}
+  .card,.stat{border-color:#ccc}
+  .tl-scroll{overflow:visible}
+  .tl{min-width:0}
+  .tl{--label:240px}
+  .month.alt,.tl-grid .band{background:#f4f4f2!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .dot,.pill,tr.mrow td,.lg-dot{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .list{break-before:page}
+  tr,.tl-row{break-inside:avoid}
+  .tl-track{height:27px}
+  .legend{padding:2px 14px 8px}
+  .tl-head .tl-track{height:28px}
+  .dlabel{top:calc(50% + 6px);font-size:8pt}
+  .dot{width:11px;height:11px;margin:-5.5px 0 0 -5.5px}
+  .sec-h{padding:10px 14px 2px}
+  h1{font-size:20pt}
+  .tl-label{padding:2px 10px 2px 0;font-size:9pt;line-height:1.15}
+  .tl-label .c{font-size:7.5pt}
+  td{padding:6px 10px}
+  th{padding:6px 10px}
+  tr.mrow td{padding:4px 10px}
+  .summary{display:none}
+  .stat{padding:8px 12px}
+  .linkish{text-decoration:none}
+}
+@media (max-width:640px){
+  h1{font-size:21px}
+  .field{min-width:0;flex:1 1 100%}
+  .tl{--label:150px}
+  th.h-lead,td.h-lead,th.h-type,td.h-type{display:none}
+  .kv{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <h1>Programmatic Assessment Calendar 2026-27</h1>
+    <p class="sub">UWE Planning School</p>
+    <div class="tabs" role="tablist" aria-label="Views">
+      <button class="tab" role="tab" id="tab-timeline" aria-controls="panel-timeline" aria-selected="true">My assessment timeline</button>
+      <button class="tab" role="tab" id="tab-modules" aria-controls="panel-modules" aria-selected="false" tabindex="-1">Modules by programme</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <!-- TAB 1 -->
+  <section class="panel" id="panel-timeline" role="tabpanel" aria-labelledby="tab-timeline">
+    <p class="print-only" id="print-cohort" style="font-size:15pt;font-weight:650;margin:0 0 6px"></p>
+    <div class="controls">
+      <div class="field">
+        <label for="sel-prog">Programme</label>
+        <select id="sel-prog"></select>
+      </div>
+      <div class="field">
+        <label for="sel-year">Year / level</label>
+        <select id="sel-year"></select>
+      </div>
+      <div class="spacer"></div>
+      <button class="btn" id="btn-csv" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v3h16v-3"/></svg>Export CSV</button>
+      <button class="btn" id="btn-pdf" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6M6 18H4v-7h16v7h-2M7 14h10v7H7z"/></svg>Export PDF</button>
+    </div>
+
+    <div class="summary" id="summary"></div>
+
+    <div class="card">
+      <div class="sec-h"><h2>Hand-ins across the year</h2><span class="note no-print">Hover or tap a point for details</span></div>
+      <div class="tl-scroll"><div class="tl" id="timeline"></div></div>
+      <div class="legend">
+        <span><i class="lg-dot"></i>Upcoming hand-in</span>
+        <span><i class="lg-dot past"></i>Hand-in date passed</span>
+        <span><i class="lg-today"></i>Today</span>
+      </div>
+    </div>
+
+    <div class="card list">
+      <div class="sec-h"><h2>Modules and hand-in dates</h2><span class="note" id="list-note"></span></div>
+      <div id="exam-box"></div>
+      <div style="overflow-x:auto"><table id="list"></table></div>
+    </div>
+  </section>
+
+  <!-- TAB 2 -->
+  <section class="panel" id="panel-modules" role="tabpanel" aria-labelledby="tab-modules" hidden>
+    <div class="mod-controls">
+      <input type="search" id="mod-search" placeholder="Search by module title, code or module leader" aria-label="Search modules">
+    </div>
+    <div class="chips" id="prog-chips" role="group" aria-label="Filter by programme"></div>
+    <div class="mod-layout">
+      <nav class="mod-list" id="prog-list" aria-label="Modules"></nav>
+      <section class="mod-detail" id="mod-detail" aria-live="polite" aria-label="Module details"></section>
+    </div>
+  </section>
+</main>
+
+<footer class="wrap">
+  <div class="caveat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
+  <p><b>For final confirmation,</b> please check assessment dates, including the 48-hour window, on the module page on Blackboard as set out by your module leader.</p></div>
+  <p class="credit">Prompt engineered by Dr Deepak Gopinath and designed in Claude, 02 Nov 2026.</p>
+</footer>
+
+<div class="tip" id="tip" role="tooltip"></div>
+
+
+
+<script>
+const DATA = [{"code":"UBGLXQ-15-3","title":"Achieving Design Quality","progs":["BSc Urban Planning"],"year":"Year 3","ass":"Report","type":"Report","date":"2027-05-17","lead":"Amir Gohar","yf":{"BSc Urban Planning":"Year 3"}},{"code":"UBGMY5-30-M","title":"Agency Project B","progs":["MSc Urban Planning"],"year":"PGT","ass":"Project Brief","type":"Coursework","date":"2027-06-14","lead":"Muhammad Adeel","yf":{"MSc Urban Planning":"PGT"}},{"code":"UBGMY5-30-M","title":"Agency Project B","progs":["MSc Urban Planning"],"year":"PGT","ass":"Report","type":"Report","date":"2027-08-02","lead":"Muhammad Adeel","yf":{"MSc Urban Planning":"PGT"}},{"code":"UBGMY5-30-M","title":"Agency Project B","progs":["MSc Urban Planning"],"year":"PGT","ass":"Interview","type":"Interview","date":"2027-08-09","lead":"Muhammad Adeel","yf":{"MSc Urban Planning":"PGT"}},{"code":"UBLLB3-15-1","title":"City Lab: Digital Design Skills","progs":["BSc Urban Planning"],"year":"Year 1","ass":"Planning portfolio","type":"Portfolio","date":"2027-05-17","lead":"Muhammad Adeel","yf":{"BSc Urban Planning":"Year 1"}},{"code":"UBGLX9-15-1","title":"Communities, Neighbourhood and Participation","progs":["BSc Urban Planning","Cert HE in Planning Practice"],"year":"Year 1","ass":"Role play presentation","type":"Presentation","date":"2026-12-16","lead":"Katie McClymont","yf":{"BSc Urban Planning":"Year 1","Cert HE in Planning Practice":"Year 1"}},{"code":"UBGLY9-15-3","title":"Infrastructure Design and Implementation Project","progs":["BSc Urban Planning"],"year":"Year 3","ass":"Report","type":"Report","date":"2027-01-07","lead":"Luc Pellecuer","yf":{"BSc Urban Planning":"Year 3"}},{"code":"UBLMUC-30-2","title":"Development, Practice and Law","progs":["BSc Urban Planning"],"year":"Year 2","ass":"Practice report","type":"Report","date":"2027-01-18","lead":"Cat Loveday","yf":{"BSc Urban Planning":"Year 2"}},{"code":"UBLMUC-30-2","title":"Development, Practice and Law","progs":["BSc Urban Planning"],"year":"Year 2","ass":"Presentation","type":"Presentation","date":"2027-04-29","lead":"Cat Loveday","yf":{"BSc Urban Planning":"Year 2"}},{"code":"UBGMT6-30-M","title":"Dissertation","progs":["MSc Urban Planning","MSc Planning and Urban Leadership"],"year":"PGT","ass":"Dissertation","type":"Report","date":"2027-09-06","lead":"Nick Croft","yf":{"MSc Urban Planning":"PGT","MSc Planning and Urban Leadership":"PGT"}},{"code":"UBGMSV-30-2","title":"Future Places","progs":["BSc Urban Planning"],"year":"Year 2","ass":"Presentation","type":"Presentation","date":"2027-01-11","lead":"Hooman Araabi","yf":{"BSc Urban Planning":"Year 2"}},{"code":"UBGMSV-30-2","title":"Future Places","progs":["BSc Urban Planning"],"year":"Year 2","ass":"Report","type":"Report","date":"2027-05-04","lead":"Hooman Araabi","yf":{"BSc Urban Planning":"Year 2"}},{"code":"UBGMYN-15-M","title":"Grassroots Planning","progs":["MSc Urban Planning"],"year":"PGT","ass":"Portfolio","type":"Coursework","date":"2027-05-05","lead":"Katie McClymont","yf":{"MSc Urban Planning":"PGT"}},{"code":"UBGMXN-15-M","title":"Healthy Cities","progs":["MSc Urban Planning"],"year":"PGT","ass":"Portfolio","type":"Coursework","date":"2027-05-10","lead":"Heather Rumble","yf":{"MSc Urban Planning":"PGT"}},{"code":"UBLLCF-30-M","title":"Healthy Placemaking","progs":["MSc Urban Planning"],"year":"PGT","ass":"Practice-based portfolio","type":"Portfolio","date":"2027-05-10","lead":"Hooman Araabi/Heather Rumble","yf":{"MSc Urban Planning":"PGT"}},{"code":"UBLMGN-30-1","title":"Healthy Sustainable Communities","progs":["BSc Urban Planning","Cert HE in Planning Practice"],"year":"Year 1","ass":"Project 1","type":"Individual project","date":"2026-12-07","lead":"Heather Rumble","yf":{"BSc Urban Planning":"Year 1","Cert HE in Planning Practice":"Year 1"}},{"code":"UBLMGN-30-1","title":"Healthy Sustainable Communities","progs":["BSc Urban Planning","Cert HE in Planning Practice"],"year":"Year 1","ass":"Project 2","type":"Individual project","date":"2027-04-19","lead":"Heather Rumble","yf":{"BSc Urban Planning":"Year 1","Cert HE in Planning Practice":"Year 1"}},{"code":"UBLLCD-30-M","title":"Inclusive Urban Conservation","progs":["MSc Urban Planning"],"year":"PGT","ass":"Practice-based portfolio","type":"Portfolio","date":"2027-05-05","lead":"Katy Karampour/Katie McClymont","yf":{"MSc Urban Planning":"PGT"}},{"code":"UBGMVD-15-3","title":"Independent Project","progs":["BSc Urban Planning","Cert HE in Planning Practice"],"year":"Year 3","ass":"Report","type":"Report","date":"2027-03-15","lead":"Chris Parker","yf":{"BSc Urban Planning":"Year 3","Cert HE in Planning Practice":"Year 2"}},{"code":"UBGMVD-15-3","title":"Independent Project","progs":["BSc Urban Planning","Cert HE in Planning Practice"],"year":"Year 3","ass":"Presentation","type":"Presentation","date":"2027-05-10","lead":"Chris Parker","yf":{"BSc Urban Planning":"Year 3","Cert HE in Planning Practice":"Year 2"}},{"code":"UBGMM9-30-M","title":"International Planning Practice","progs":["MSc Planning and Urban Leadership"],"year":"PGT","ass":"Portfolio 1","type":"Portfolio","date":"2027-03-01","lead":"Amir Gohar","yf":{"MSc Planning and Urban Leadership":"PGT"}},{"code":"UBGMM9-30-M","title":"International Planning Practice","progs":["MSc Planning and Urban Leadership"],"year":"PGT","ass":"Portfolio 2","type":"Portfolio","date":"2027-05-10","lead":"Amir Gohar","yf":{"MSc Planning and Urban Leadership":"PGT"}},{"code":"UBLLC5-30-M","title":"Introduction to Planning Practice","progs":["MSc Planning and Urban Leadership"],"year":"PGT","ass":"Report","type":"Report","date":"2026-11-23","lead":"Ben Clark","yf":{"MSc Planning and Urban Leadership":"PGT"}},{"code":"UBLLC5-30-M","title":"Introduction to Planning Practice","progs":["MSc Planning and Urban Leadership"],"year":"PGT","ass":"Practical Skills","type":"Report","date":"2027-01-18","lead":"Ben Clark","yf":{"MSc Planning and Urban Leadership":"PGT"}},{"code":"UBGLJ1-30-M","title":"Leading Urban Change","progs":["MSc Planning and Urban Leadership"],"year":"PGT","ass":"Reflective writing","type":"Report","date":"2026-11-16","lead":"Nick Croft","yf":{"MSc Planning and Urban Leadership":"PGT"}},{"code":"UBGLJ1-30-M","title":"Leading Urban Change","progs":["MSc Planning and Urban Leadership"],"year":"PGT","ass":"Presentation","type":"Presentation","date":"2027-01-11","lead":"Nick Croft","yf":{"MSc Planning and Urban Leadership":"PGT"}},{"code":"UBGLWU-30-1","title":"People, Places and Change","progs":["BSc Urban Planning"],"year":"Year 1","ass":"written assignment","type":"Report","date":"2027-05-10","lead":"Adi Ray","yf":{"BSc Urban Planning":"Year 1"}},{"code":"UBGLWU-30-1","title":"People, Places and Change","progs":["BSc Urban Planning"],"year":"Year 1","ass":"critical notes","type":"Portfolio","date":"2027-01-18","lead":"Adi Ray","yf":{"BSc Urban Planning":"Year 1"}},{"code":"UBGMY7-15-M","title":"Planning for Conservation","progs":["MSc Urban Planning"],"year":"PGT","ass":"Portfolio","type":"Coursework","date":"2027-05-05","lead":"Katy Karampour","yf":{"MSc Urban Planning":"PGT"}},{"code":"UBLLAR-15-1","title":"Planning Fundamentals 1","progs":["BSc Urban Planning"],"year":"Year 1","ass":"Written manifesto","type":"Individual project","date":"2027-01-11","lead":"Katy Karampour","yf":{"BSc Urban Planning":"Year 1"}},{"code":"UBLLBM-15-1","title":"Planning Fundamentals 2","progs":["BSc Urban Planning"],"year":"Year 1","ass":"Video presentation","type":"Presentation","date":"2027-05-04","lead":"Cat Loveday","yf":{"BSc Urban Planning":"Year 1"}},{"code":"UBGMWE-30-3","title":"Planning Global Cities","progs":["BSc Urban Planning","Cert HE in Planning Practice"],"year":"Year 3","ass":"Essay","type":"Essay","date":"2026-11-23","lead":"Michael Buser/Elahe Karimnia","yf":{"BSc Urban Planning":"Year 3","Cert HE in Planning Practice":"Year 2"}},{"code":"UBGMWE-30-3","title":"Planning Global Cities","progs":["BSc Urban Planning","Cert HE in Planning Practice"],"year":"Year 3","ass":"Presentation","type":"Presentation","date":"2027-02-22","lead":"Michael Buser/Elahe Karimnia","yf":{"BSc Urban Planning":"Year 3","Cert HE in Planning Practice":"Year 2"}},{"code":"UBGMWE-30-3","title":"Planning Global Cities","progs":["BSc Urban Planning","Cert HE in Planning Practice"],"year":"Year 3","ass":"Poster","type":"Poster","date":"2027-04-28","lead":"Michael Buser/Elahe Karimnia","yf":{"BSc Urban Planning":"Year 3","Cert HE in Planning Practice":"Year 2"}},{"code":"UBGMP3-30-M","title":"Planning Practice","progs":["MSc Urban Planning"],"year":"PGT","ass":"Planning Report","type":"Report","date":"2027-04-05","lead":"Cat Loveday","yf":{"MSc Urban Planning":"PGT"}},{"code":"UBGMP3-30-M","title":"Planning Practice","progs":["MSc Urban Planning"],"year":"PGT","ass":"Design portfolio","type":"Portfolio","date":"2027-04-26","lead":"Cat Loveday","yf":{"MSc Urban Planning":"PGT"}},{"code":"UBGMNJ-30-M","title":"Planning Theories and Histories","progs":["MSc Urban Planning"],"year":"PGT","ass":"Portfolio","type":"Portfolio","date":"2027-01-11","lead":"Elahe Karimnia","yf":{"MSc Urban Planning":"PGT"}},{"code":"UBGLVY-15-3","title":"Planning Theory","progs":["BSc Urban Planning"],"year":"Year 3","ass":"Presentation","type":"Presentation","date":"2027-04-05","lead":"Michael Buser","yf":{"BSc Urban Planning":"Year 3"}},{"code":"UBGLVY-15-3","title":"Planning Theory","progs":["BSc Urban Planning"],"year":"Year 3","ass":"Essay","type":"Essay","date":"2027-05-04","lead":"Michael Buser","yf":{"BSc Urban Planning":"Year 3"}},{"code":"UBGMN3-30-M","title":"Principles of Planning","progs":["MSc Urban Planning"],"year":"PGT","ass":"Group presentation","type":"Presentation","date":"2026-11-26","lead":"Stephen Hall","yf":{"MSc Urban Planning":"PGT"}},{"code":"UBGMN3-30-M","title":"Principles of Planning","progs":["MSc Urban Planning"],"year":"PGT","ass":"Individual report","type":"Report","date":"2027-01-18","lead":"Stephen Hall","yf":{"MSc Urban Planning":"PGT"}},{"code":"UBGL34-15-1","title":"Professional Development and Practice","progs":["Cert HE in Planning Practice"],"year":"Year 1","ass":"Presentation","type":"Presentation","date":"2027-05-04","lead":"Cat Loveday","yf":{"Cert HE in Planning Practice":"Year 2"}},{"code":"UBGMYQ-15-3","title":"Professional Experience","progs":["BSc Urban Planning"],"year":"Year 2","ass":"Report","type":"Report","date":"2027-04-05","lead":"Sarah Hills","yf":{"BSc Urban Planning":"Year 2"}},{"code":"UBLLC7-30-M","title":"Project Viability and Risk Management","progs":["MSc Planning and Urban Leadership"],"year":"PGT","ass":"Report","type":"Report","date":"2027-03-08","lead":"Jo Zhou","yf":{"MSc Planning and Urban Leadership":"PGT"}},{"code":"UBLLC7-30-M","title":"Project Viability and Risk Management","progs":["MSc Planning and Urban Leadership"],"year":"PGT","ass":"Practical Skills","type":"Report","date":"2027-05-04","lead":"Jo Zhou","yf":{"MSc Planning and Urban Leadership":"PGT"}},{"code":"UBGMFJ-15-2","title":"Researching the City","progs":["BSc Urban Planning","Cert HE in Planning Practice"],"year":"Year 2","ass":"Research Proposal","type":"Report","date":"2027-05-10","lead":"Nick Croft","yf":{"BSc Urban Planning":"Year 2","Cert HE in Planning Practice":"Year 1"}},{"code":"UBLLCJ-30-M","title":"Strategic Projects","progs":["MSc Planning and Urban Leadership","MSc Urban Planning"],"year":"PGT","ass":"Professional report","type":"Report","date":"2027-06-14","lead":"Hannah Hickman/Muhammad Adeel","yf":{"MSc Planning and Urban Leadership":"PGT","MSc Urban Planning":"PGT"}},{"code":"UBLLCJ-30-M","title":"Strategic Projects","progs":["MSc Planning and Urban Leadership","MSc Urban Planning"],"year":"PGT","ass":"Practice report","type":"Report","date":"2027-08-16","lead":"Hannah Hickman/Muhammad Adeel","yf":{"MSc Planning and Urban Leadership":"PGT","MSc Urban Planning":"PGT"}},{"code":"UBGLD1-30-3","title":"Sustainable Transport: Technologies and Behaviour","progs":["BSc Urban Planning"],"year":"Year 3","ass":"Presentation","type":"Presentation","date":"2027-01-22","lead":"Billy Clayton","yf":{"BSc Urban Planning":"Year 3"}},{"code":"UBGLD1-30-3","title":"Sustainable Transport: Technologies and Behaviour","progs":["BSc Urban Planning"],"year":"Year 3","ass":"Report","type":"Report","date":"2027-05-10","lead":"Billy Clayton","yf":{"BSc Urban Planning":"Year 3"}},{"code":"UBGLC1-15-2","title":"Transport and Mobility","progs":["BSc Urban Planning"],"year":"Year 2","ass":"Report","type":"Report","date":"2026-12-15","lead":"Billy Clayton/Justin Spinney","yf":{"BSc Urban Planning":"Year 2"}},{"code":"UBGMX7-15-M","title":"Urban Design","progs":["MSc Urban Planning"],"year":"PGT","ass":"Portfolio","type":"Coursework","date":"2027-05-10","lead":"Hooman Araabi","yf":{"MSc Urban Planning":"PGT"}},{"code":"UBGMME-30-3","title":"Water and Energy Futures","progs":["BSc Urban Planning"],"year":"Year 3","ass":"Presentation","type":"Presentation","date":"2026-12-07","lead":"Nevil Quinn","yf":{"BSc Urban Planning":"Year 3"}},{"code":"UBGMME-30-3","title":"Water and Energy Futures","progs":["BSc Urban Planning"],"year":"Year 3","ass":"Report","type":"Report","date":"2027-04-26","lead":"Nevil Quinn","yf":{"BSc Urban Planning":"Year 3"}}];
+const MODINFO = {"UBGLXQ-15-3":{"desc":"This practice‑focused module explores how high‑quality urban and building design is achieved through the planning process. Students develop and test a site‑based proposal, learning how design guidance, policy, negotiation, and development management shape real outcomes. Assessment is an individual design portfolio, presented as a professional design and access statement.","term":"Term 2 (Jan–May)"},"UBLLB3-15-1":{"desc":"This hands‑on module introduces students to the digital tools increasingly used in planning practice. Students develop core skills in GIS mapping, data analysis, and digital visualisation, learning how to communicate planning ideas clearly using real datasets and site‑based examples. Assessment is a digital planning portfolio, including maps, data analysis, and a conceptual site proposal.","term":"Term 2 (Jan–May)"},"UBGLX9-15-1":{"desc":"This module focuses on the role of communities in planning and how people can influence decisions about their neighbourhoods. Students explore participation, engagement, and planning ethics while developing communication, negotiation, and advocacy skills. Assessment is an individual role‑play presentation, simulating real‑world community and stakeholder engagement scenarios.","term":"Term 1 (Sep–Jan)"},"UBGLY9-15-3":{"desc":"This module introduces students to the planning, design, and delivery of major infrastructure projects. Working initially in multidisciplinary groups and then individually, students examine infrastructure policy, funding, stakeholders, masterplanning, and delivery challenges. Assessment includes a group presentation and an individual analytical project report.","term":"Term 1 (Sep–Jan)"},"UBLMUC-30-2":{"desc":"This applied module explores how development projects are taken from initial idea through planning, construction, and delivery. Students study development practice alongside planning and environmental law, professional roles, negotiation, and project management. Assessment consists of a site‑based strategy report and an individual presentation with a reflective logbook.","term":"Terms 1 and 2 (Sep–May)"},"UBGMT6-30-M":{"desc":"The dissertation is an individual piece of in-depth research carried out by the student. It allows them to pursue a specific issue of interest within the field of Planning. Students are supported in their research journey by an allocated supervisor to advise on research methods/strategy. The assessment comprises one summative assessment, the final dissertation submission.","term":"Terms 1 and 2 (Sep–May)"},"UBGMSV-30-2":{"desc":"This module explores how planning systems shape cities and regions at international, national, and local levels. Students examine how planning responds to challenges such as climate change, sustainability, transport, and place‑making, before applying these ideas to a real urban area. Assessment includes an individual presentation and a planning report focused on preparing a future vision for a local place.","term":"Terms 1 and 2 (Sep–May)"},"UBLLCF-30-M":{"desc":"This module explores how planning and urban design can promote health, wellbeing, and social equity in cities. Students examine the environmental, spatial, and social determinants of health and learn to apply evidence‑based design and policy approaches to real urban contexts. Assessment is a practice‑based portfolio, including a health‑focused urban design proposal and a Health Impact Assessment.","term":"Term 2 (Jan–May)"},"UBLMGN-30-1":{"desc":"This introductory module explores how planning and design can support healthy, sustainable neighbourhoods in the context of climate change and social inequality. Students examine the relationships between people, place, and environmental resources using real case studies, fieldwork, and spatial analysis. Assessment is a two‑part individual project, involving site analysis and a planning and design proposal.","term":"Term 1 (Sep–Jan)"},"UBLLCD-30-M":{"desc":"This module examines urban conservation through the lens of inclusion, equity, and cultural diversity, focusing on historic urban environments in the UK and internationally. Students analyse how policy, law, design, and community engagement shape conservation outcomes and heritage‑led regeneration. Assessment consists of an individual portfolio, developing an inclusive conservation strategy for a historic urban area.","term":"Term 2 (Jan–May)"},"UBGMVD-15-3":{"desc":"This module primarily develops and assesses students' ability to complete a substantial, independent project related to their degree discipline (i.e. a dissertation). It additionally develops and assesses their ability to demonstrate their readiness for graduate employment within a professional interview. Assessment consists of a project report that assesses the students' ability to design, complete, and communicate a substantial independent project; and, a professional interview which is designed to replicate the style students are likely to experience when applying for graduate-level jobs.","term":"Terms 1 and 2 (Sep–May)"},"UBGMM9-30-M":{"desc":"This module centres on the planning, appraisal, and delivery of major development projects in the UK and internationally, using a live project site to immerse students in real-world strategic planning processes. It develops understanding of legislation, policy justification, business case development, site selection, sustainability, climate action, informal urbanism, and stakeholder engagement. Students gain insight into the complexities of delivering large-scale change –by the government, private sector, and international agencies such as UN-Habitat- and the competencies planners require to lead such projects. Assessment is via two substantial e portfolio submissions, built from weekly reflective blurbs. Portfolio 1 focuses on site visioning and early-stage analysis; Portfolio 2 deepens evaluation through sustainability, risk, and delivery considerations.","term":"Term 2 (Jan–May)"},"UBLLC5-30-M":{"desc":"This module provides a comprehensive grounding in development plans and development management, ensuring students understand how planning decisions are made, justified, and implemented. It covers planning law, plan making processes, consultation and engagement, enforcement, specialist regimes, and the practical skills required for professional planning work. Students develop the ability to evaluate planning approaches, interpret policy, and apply ethical and accountable decision making. Assessment is via a Development Plans report analysing plan preparation or delivery, and a Development Management assessment advising on a planning application scenario using policy based argumentation.","term":"Term 1 (Sep–Jan)"},"UBGLJ1-30-M":{"desc":"This module explores the planner’s role in shaping positive change across built and natural environments, grounding students in governance, leadership, ethics, and the challenges of contemporary urban contexts. It examines how planners operate at multiple spatial scales, from international to neighbourhood, and encourages critical engagement with global issues such as climate change, resilience, and smart city technologies. Students develop an integrated understanding of professional competencies, leadership skills, and the strategic thinking required to guide urban transformation. Assessment is via a Personal Learning Log (1,500 words) reflecting on examples of planners leading change and their own developing competencies, followed by an individual presentation critically reviewing leadership approaches and linking them to module themes.","term":"Term 1 (Sep–Jan)"},"UBGLWU-30-1":{"desc":"This module introduces students to how people experience places and how social change shapes cities and communities. Students explore themes such as identity, inequality, mobility, and place‑making through contemporary human geography perspectives. Assessment includes a written assignment and a portfolio of critical notes and reflections.","term":"Terms 1 and 2 (Sep–May)"},"UBLLAR-15-1":{"desc":"This foundation module introduces the purpose, structure, and key principles of the UK planning system. Students explore why planning exists, how decisions are made, and how planning shapes the built and natural environment, supported by case studies and site visits. Assessment is an individual written manifesto, articulating a personal vision for the future of planning.","term":"Term 1 (Sep–Jan)"},"UBLLBM-15-1":{"desc":"This professional development module focuses on planning as a career and area of practice. Students explore what planners do, where they work, the skills and ethical responsibilities involved, and how the profession is changing internationally. Assessment is an individual video presentation, combining professional reflection with career planning.","term":"Term 2 (Jan–May)"},"UBGMWE-30-3":{"desc":"This module examines the growth, governance, and future planning of major cities across the world. Students explore global urbanisation, infrastructure, inequality, climate change, and city competitiveness through theory and international case studies. Assessment includes an essay, a poster, and a presentation, developing advanced research and communication skills.","term":"Terms 1 and 2 (Sep–May)"},"UBGMP3-30-M":{"desc":"Focusing on the practical realities of planning, this module develops understanding of planning law, policy, and development management processes. Students learn how planning decisions are made, how development proposals are assessed, and how design and place-making principles shape inclusive and sustainable environments. Assessment consists of an individual planning report and a design-focused planning portfolio.","term":"Term 2 (Jan–May)"},"UBGMNJ-30-M":{"desc":"This module introduces the key theories, ideas, and historical debates that have shaped urban and spatial planning since the mid‑20th century. Students critically examine concepts such as the public interest, social and environmental justice, and the role of the state in planning decisions. Assessment is via a portfolio combining a presentation and a reflective critical logbook.","term":"Term 1 (Sep–Jan)"},"UBGLVY-15-3":{"desc":"This module explores the key theories, ideas, and ethical debates that have shaped planning over the past 60 years. Students examine concepts such as the public interest, sustainable development, justice, and professional ethics, while developing skills in critical thinking and argumentation. Assessment includes a formal debate and an individual academic essay.","term":"Term 2 (Jan–May)"},"UBGMN3-30-M":{"desc":"This module explores how plans are conceived, developed, and tested across different spatial scales, from neighbourhoods to international contexts. Students examine planning theories alongside real-world case studies, focusing on themes such as climate change, housing, infrastructure, and place-making. Assessment includes a group presentation and an individual practice-based report.","term":"Term 1 (Sep–Jan)"},"UBGMYQ-15-3":{"desc":"This module offers students the opportunity to gain short‑term professional experience within a relevant organisation. Students complete a minimum of 20 days of work experience, supported by careers guidance and academic supervision, and develop professional and reflective skills. Assessment is based on an individual reflective report, linking workplace experience to academic learning and future career goals.","term":"Term 1 (Sep–Jan)"},"UBLLC7-30-M":{"desc":"This module equips students to assess the economic, financial, spatial, and governance dimensions of development viability. It integrates market analysis, funding models, transport planning, risk identification, and policy evaluation to help students understand how viable development proposals are formulated. Emphasis is placed on evidence-based reasoning, multidisciplinary synthesis, and professional communication. Assessment is via a Policy Impact Critique analysing how planning policies shape a development project, and a Feasibility Report incorporating market, transport, and risk analysis.","term":"Term 2 (Jan–May)"},"UBGMFJ-15-2":{"desc":"This research‑focused module prepares students for independent study by introducing key research methods used in urban planning and geography. Students develop skills in research design, qualitative and quantitative methods, ethics, data collection, and analysis. Assessment is an individual research proposal, designed as a bridge toward final‑year dissertation work.","term":"Term 2 (Jan–May)"},"UBLLCJ-30-M":{"desc":"This module blends academic study of strategic planning with a practice-based placement. Students explore spatial development strategies, infrastructure planning, growth management, and nationally significant infrastructure projects, before applying this knowledge in a professional environment. It develops RTPI aligned competencies in leadership, governance, stakeholder engagement, and reflective practice. Assessment is via professional report comparing strategic plans or NSIPs, plus a short interview, and a placement report demonstrating applied competencies, also followed by an interview.","term":"Terms 1 and 2 (Sep–May)"},"UBGLD1-30-3":{"desc":"This module examines how sustainable transport systems can be delivered through policy, planning, technology, and behaviour change. Students explore travel behaviour theory, transport planning processes, and real‑world interventions at local and international scales. Assessment consists of a promotional portfolio presentation and an individual travel‑plan report.","term":"Terms 1 and 2 (Sep–May)"},"UBGLC1-15-2":{"desc":"This module examines contemporary transport and mobility patterns and their social and environmental impacts, including climate change, health, accessibility, and air quality. Students explore transport systems through theory, international case studies, and real‑world policy challenges, with a focus on sustainable solutions. Assessment is an individual report, designing a sustainable transport strategy for a chosen place or context.","term":"Term 1 (Sep–Jan)"},"UBGMME-30-3":{"desc":"This module focuses on future challenges in water and energy management through a sustainability and climate change lens. Students examine issues such as integrated water management, renewable energy, decarbonisation, and the water‑energy nexus, drawing on global case studies. Assessment comprises an individual presentation and a policy‑brief style written assignment aimed at non‑specialist audiences.","term":"Terms 1 and 2 (Sep–May)"},"UBLLYE-15-2":{"desc":"This module introduces the financial and economic dimensions of development within the planning process. Students learn how sites are appraised, how development viability is assessed, and how planning obligations and market risks influence decision‑making. Assessment is a 24‑hour online examination focused on development appraisal and valuation methods.","term":"Term 1 (Sep–Jan)"},"UBGLXG-15-2":{"desc":"This module explores how cities respond to economic, social, and cultural change through regeneration strategies. Students examine themes such as gentrification, culture‑led regeneration, tourism, sport, and the night‑time economy using international case studies. Assessment is a written assignment analysing real‑world regeneration challenges.","term":"Term 2 (Jan–May)"}};
+const EXAMS = [{"code":"UBLLYE-15-2","title":"Development Appraisal and Planning","lead":"Jo Zhou","year":"Year 2","progs":["BSc Urban Planning"]},{"code":"UBGLXG-15-2","title":"City Regeneration","lead":"Andrew Tallon","year":"Year 2","progs":["BSc Urban Planning"]}];
+const PROG_LEADERS = {
+  "BSc Urban Planning": ["Cat Loveday", "Katy Karampour"],
+  "Cert HE in Planning Practice": ["Katie McClymont", "Cat Loveday"],
+  "MSc Urban Planning": ["Hooman Araabi", "Jo Zhou"],
+  "MSc Planning and Urban Leadership": ["Amir Gohar"]
+};
+const plJoin = p => (PROG_LEADERS[p] || []).join(" and ");
+const plLabel = p => (PROG_LEADERS[p] || []).length > 1 ? "Programme leaders" : "Programme leader";
+const EXAM_NOTE = "Please check examination dates when available on Blackboard.";
+
+/* ---------- helpers ---------- */
+const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const MONTHS_L = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const WD = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+const LEVEL_ORDER = ["Foundation Year","Year 1","Year 2","Year 3","PGT"];
+const PROG_ORDER = ["BSc Urban Planning","Cert HE in Planning Practice","MSc Urban Planning","MSc Planning and Urban Leadership"];
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const cap = s => s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+const parse = s => { const [y,m,d] = s.split("-").map(Number); return new Date(y, m-1, d); };
+const fmtLong = d => `${WD[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+const fmtShort = d => `${d.getDate()} ${MONTHS[d.getMonth()]}`;
+const TODAY = (() => { const n = new Date(); return new Date(n.getFullYear(), n.getMonth(), n.getDate()); })();
+const daysUntil = d => Math.round((d - TODAY) / 864e5);
+const byLevel = (a,b) => LEVEL_ORDER.indexOf(a) - LEVEL_ORDER.indexOf(b);
+const byProg = (a,b) => { const i=PROG_ORDER.indexOf(a), j=PROG_ORDER.indexOf(b); return (i<0?99:i)-(j<0?99:j) || a.localeCompare(b); };
+function statusPill(d){
+  const n = daysUntil(d);
+  if (n < 0) return `<span class="pill done">Passed</span>`;
+  if (n === 0) return `<span class="pill soon">Due today</span>`;
+  if (n <= 28) return `<span class="pill soon">In ${n} day${n===1?"":"s"}</span>`;
+  const w = Math.round(n/7);
+  return `<span class="pill">In ${w} weeks</span>`;
+}
+const leaders = s => s.split("/").map(x => x.trim()).filter(Boolean);
+const yearOf = (r, p) => (r.yf && r.yf[p]) || r.year;
+const CERT = "Cert HE in Planning Practice";
+
+DATA.forEach((r,i) => { r.id = i; r.d = parse(r.date); r.ass = cap(r.ass); });
+
+/* modules keyed by code */
+const MODULES = {};
+DATA.forEach(r => {
+  const m = MODULES[r.code] ||= { code:r.code, title:r.title, year:r.year, lead:r.lead, progs:new Set(), yf:{}, items:[] };
+  r.progs.forEach(p => { m.progs.add(p); m.yf[p] = yearOf(r, p); });
+  m.items.push(r);
+});
+EXAMS.forEach(e => { MODULES[e.code] = { code:e.code, title:e.title, year:e.year, lead:e.lead, progs:new Set(e.progs), yf:Object.fromEntries(e.progs.map(p => [p, e.year])), items:[], exam:true }; });
+Object.values(MODULES).forEach(m => { m.progs = [...m.progs].sort(byProg); m.items.sort((a,b) => a.d - b.d); });
+
+const PROGS = [...new Set(DATA.flatMap(r => r.progs))].sort(byProg);
+const levelsFor = p => [...new Set(DATA.filter(r => r.progs.includes(p)).map(r => yearOf(r, p)))].sort(byLevel);
+
+/* timeline range: Sep 2026 → end of the month containing the last hand-in (min Aug 2027) */
+const RANGE_START = new Date(2026, 8, 1);
+const lastD = DATA.reduce((m,r) => r.d > m ? r.d : m, new Date(2027, 7, 1));
+const RANGE_END = new Date(lastD.getFullYear(), lastD.getMonth() + 1, 1);
+const pct = d => ((d - RANGE_START) / (RANGE_END - RANGE_START)) * 100;
+
+/* ---------- state ---------- */
+const state = { prog: PROGS[0], year: null };
+try {
+  const s = JSON.parse(localStorage.getItem("pac-cohort") || "null");
+  if (s && PROGS.includes(s.prog)) { state.prog = s.prog; state.year = s.year; }
+} catch(e) {}
+const hash = new URLSearchParams(location.hash.slice(1));
+if (hash.get("p") && PROGS.includes(hash.get("p"))) { state.prog = hash.get("p"); state.year = hash.get("y"); }
+
+/* ---------- tabs ---------- */
+const tabs = [...document.querySelectorAll(".tab")];
+function showTab(id){
+  document.getElementById("tip").classList.remove("on");
+  tabs.forEach(t => {
+    const on = t.id === id;
+    t.setAttribute("aria-selected", on); t.tabIndex = on ? 0 : -1;
+    document.getElementById(t.getAttribute("aria-controls")).hidden = !on;
+  });
+}
+tabs.forEach((t,i) => {
+  t.addEventListener("click", () => showTab(t.id));
+  t.addEventListener("keydown", e => {
+    if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+      const n = tabs[(i + (e.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length];
+      showTab(n.id); n.focus();
+    }
+  });
+});
+
+/* ---------- tab 1 ---------- */
+const selProg = $("#sel-prog"), selYear = $("#sel-year");
+selProg.innerHTML = PROGS.map(p => `<option>${esc(p)}</option>`).join("");
+
+function fillYears(){
+  const lv = levelsFor(state.prog);
+  if (!lv.includes(state.year)) state.year = lv[0];
+  selYear.innerHTML = lv.map(y => `<option${y===state.year?" selected":""}>${esc(y)}</option>`).join("");
+}
+selProg.addEventListener("change", () => { state.prog = selProg.value; fillYears(); render(); });
+selYear.addEventListener("change", () => { state.year = selYear.value; render(); });
+
+function cohortRows(){
+  return DATA.filter(r => r.progs.includes(state.prog) && yearOf(r, state.prog) === state.year).sort((a,b) => a.d - b.d || a.title.localeCompare(b.title));
+}
+
+function render(){
+  selProg.value = state.prog; selYear.value = state.year;
+  try { localStorage.setItem("pac-cohort", JSON.stringify(state)); } catch(e) {}
+  history.replaceState(null, "", "#" + new URLSearchParams({p:state.prog, y:state.year}).toString());
+  const rows = cohortRows();
+  $("#print-cohort").textContent = `${state.prog} — ${state.year}` + (PROG_LEADERS[state.prog] ? `  ·  ${plLabel(state.prog)}: ${plJoin(state.prog)}` : "");
+  renderSummary(rows); renderTimeline(rows); renderList(rows);
+}
+
+function renderSummary(rows){
+  const mods = new Set(rows.map(r => r.code)).size;
+  const next = rows.find(r => r.d >= TODAY);
+  const busiest = (() => {
+    const c = {}; rows.forEach(r => { const k = r.d.getFullYear()*12 + r.d.getMonth(); c[k] = (c[k]||0) + 1; });
+    const [k,n] = Object.entries(c).sort((a,b) => b[1]-a[1])[0] || [];
+    return k ? `${MONTHS_L[k%12]} ${Math.floor(k/12)} (${n})` : "—";
+  })();
+  $("#summary").innerHTML = `
+    <div class="stat"><div class="k">Hand-ins</div><div class="v">${rows.length}</div></div>
+    <div class="stat"><div class="k">Modules</div><div class="v">${mods}</div></div>
+    <div class="stat"><div class="k">Busiest month</div><div class="v" style="font-size:16px;margin-top:6px">${busiest}</div></div>
+    <div class="stat next"><div class="k">Next hand-in</div>${ next
+      ? `<div class="v">${esc(next.ass)} · ${esc(next.title)}</div><div class="m">${fmtLong(next.d)} — ${daysUntil(next.d)===0 ? "due today" : "in " + daysUntil(next.d) + " day" + (daysUntil(next.d)===1?"":"s")}</div>`
+      : `<div class="v">All hand-ins for this year have passed</div>`}</div>
+    ${PROG_LEADERS[state.prog] ? `<div class="stat lead"><div class="k">${plLabel(state.prog)}</div><div class="v">${PROG_LEADERS[state.prog].map(esc).join("<br>")}</div></div>` : ""}`;
+}
+
+function renderTimeline(rows){
+  const el = $("#timeline");
+  if (!rows.length) { el.innerHTML = `<div class="empty">No hand-ins found for this programme and year.</div>`; return; }
+  // month header
+  let months = "", grid = "";
+  for (let d = new Date(RANGE_START), i = 0; d < RANGE_END; d = new Date(d.getFullYear(), d.getMonth()+1, 1), i++) {
+    const nx = new Date(d.getFullYear(), d.getMonth()+1, 1);
+    const l = pct(d), w = pct(nx) - l;
+    const lab = d.getMonth() === 0 || i === 0 ? `${MONTHS[d.getMonth()]} ${String(d.getFullYear()).slice(2)}` : MONTHS[d.getMonth()];
+    months += `<div class="month${i%2?" alt":""}" style="left:${l}%;width:${w}%">${lab}</div>`;
+    grid += (i%2 ? `<div class="band" style="left:${l}%;width:${w}%"></div>` : "") + `<div class="gl" style="left:${l}%"></div>`;
+  }
+  const tp = pct(TODAY);
+  const todayHtml = tp >= 0 && tp <= 100 ? `<div class="today" style="left:${tp}%"><span>Today</span></div>` : "";
+
+  // lanes: one per module, ordered by first hand-in
+  const lanes = {};
+  rows.forEach(r => (lanes[r.code] ||= []).push(r));
+  const order = Object.values(lanes).sort((a,b) => a[0].d - b[0].d);
+  let body = "";
+  order.forEach(items => {
+    const m = items[0];
+    let dots = "", lastLabelX = -99;
+    items.forEach(r => {
+      const x = pct(r.d);
+      const past = r.d < TODAY;
+      dots += `<button class="dot${past?" past":""}" style="left:${x}%" data-id="${r.id}" aria-label="${esc(r.title)}: ${esc(r.ass)}, ${fmtLong(r.d)}"></button>`;
+      if (x - lastLabelX > 4.2) { dots += `<span class="dlabel" style="left:${x}%">${fmtShort(r.d)}</span>`; lastLabelX = x; }
+    });
+    body += `<div class="tl-row"><div class="tl-label">${esc(m.title)}<div class="c">${esc(m.code)}</div></div>
+      <div class="tl-track">${dots}</div></div>`;
+  });
+
+  el.innerHTML = `<div class="tl-grid">${grid}${todayHtml}</div>
+    <div class="tl-row tl-head"><div class="tl-label"></div><div class="tl-track">${months}</div></div>
+    <div class="tl-body">${body}</div>`;
+}
+
+function renderList(rows){
+  const t = $("#list");
+  const ex = EXAMS.filter(e => e.progs.includes(state.prog) && e.year === state.year);
+  $("#exam-box").innerHTML = ex.length ? `<div class="exam-note" style="margin:6px 18px 14px"><b>Also assessed by examination this year:</b> ${ex.map(e => `<button class="linkish" type="button" data-mod="${esc(e.code)}">${esc(e.title)}</button>`).join(" and ")}. ${EXAM_NOTE}</div>` : "";
+  $("#list-note").textContent = rows.length ? `${rows.length} hand-in${rows.length===1?"":"s"}, in date order` : "";
+  if (!rows.length) { t.innerHTML = `<tr><td class="empty">No hand-ins found.</td></tr>`; return; }
+  let html = `<thead><tr><th>Hand-in date</th><th>Module</th><th>Assessment</th><th class="h-type">Type</th><th class="h-lead">Module leader</th><th>Status</th></tr></thead><tbody>`;
+  let curM = null;
+  rows.forEach(r => {
+    const mk = `${MONTHS_L[r.d.getMonth()]} ${r.d.getFullYear()}`;
+    if (mk !== curM) { html += `<tr class="mrow"><td colspan="6">${mk}</td></tr>`; curM = mk; }
+    const others = r.progs.filter(p => p !== state.prog);
+    html += `<tr id="row-${r.id}" class="${r.d < TODAY ? "past" : ""}">
+      <td class="date"><span class="wd">${WD[r.d.getDay()]}</span>${r.d.getDate()} ${MONTHS[r.d.getMonth()]} ${r.d.getFullYear()}</td>
+      <td><button class="linkish" type="button" data-mod="${esc(r.code)}">${esc(r.title)}</button><div class="code">${esc(r.code)}</div>${others.length ? `<div class="also">Shared with ${others.map(esc).join(", ")}</div>` : ""}</td>
+      <td>${esc(r.ass)}</td>
+      <td class="h-type">${esc(r.type)}</td>
+      <td class="h-lead">${leaders(r.lead).map(esc).join("<br>")}</td>
+      <td class="st">${statusPill(r.d)}</td></tr>`;
+  });
+  t.innerHTML = html + "</tbody>";
+}
+
+/* tooltip + click-to-row */
+const tip = $("#tip");
+function showTip(btn){
+  const r = DATA[btn.dataset.id];
+  tip.innerHTML = `<b>${esc(r.title)}</b>${esc(r.ass)}${r.type.toLowerCase()!==r.ass.toLowerCase() ? " · " + esc(r.type) : ""}<br><span class="s">${fmtLong(r.d)} · ${daysUntil(r.d) < 0 ? "passed" : daysUntil(r.d) === 0 ? "due today" : "in " + daysUntil(r.d) + " days"}</span>`;
+  const b = btn.getBoundingClientRect();
+  tip.classList.add("on");
+  const tw = tip.offsetWidth, th = tip.offsetHeight;
+  let x = b.left + b.width/2 - tw/2; x = Math.max(8, Math.min(x, innerWidth - tw - 8));
+  let y = b.top - th - 10; if (y < 8) y = b.bottom + 10;
+  tip.style.left = x + "px"; tip.style.top = y + "px";
+}
+const hideTip = () => tip.classList.remove("on");
+const tl = $("#timeline");
+tl.addEventListener("mouseover", e => { const b = e.target.closest(".dot"); if (b) showTip(b); });
+tl.addEventListener("mouseout", e => { if (e.target.closest(".dot")) hideTip(); });
+tl.addEventListener("focusin", e => { const b = e.target.closest(".dot"); if (b) showTip(b); });
+tl.addEventListener("focusout", hideTip);
+tl.addEventListener("click", e => {
+  const b = e.target.closest(".dot"); if (!b) return;
+  const row = document.getElementById("row-" + b.dataset.id);
+  if (row) { row.scrollIntoView({behavior:"smooth", block:"center"}); row.classList.add("flash"); setTimeout(() => row.classList.remove("flash"), 1600); }
+});
+addEventListener("scroll", hideTip, {passive:true});
+
+/* exports */
+$("#btn-csv").addEventListener("click", () => {
+  const rows = cohortRows();
+  const q = v => `"${String(v).replace(/"/g,'""')}"`;
+  const head = ["Hand-in date","Weekday","Module code","Module title","Assessment","Type","Module leader","Programme(s)","Year / level"];
+  const lines = [head.map(q).join(",")].concat(rows.map(r => [r.date, WD[r.d.getDay()], r.code, r.title, r.ass, r.type, r.lead, r.progs.join("; "), state.year].map(q).join(",")));
+  const csv = "﻿" + lines.join("\r\n");
+  const name = `Assessment calendar 2026-27 - ${state.prog} - ${state.year}.csv`;
+  const blob = new Blob([csv], {type:"text/csv;charset=utf-8"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+});
+$("#btn-pdf").addEventListener("click", () => {
+  const old = document.title;
+  document.title = `Assessment calendar 2026-27 - ${state.prog} - ${state.year}`;
+  window.print();
+  setTimeout(() => document.title = old, 500);
+});
+
+/* ---------- tab 2 ---------- */
+let progFilter = "All";
+let selected = null; // {code, prog}
+const chipsEl = $("#prog-chips");
+const narrow = matchMedia("(max-width: 860px)");
+function renderChips(){
+  chipsEl.innerHTML = ["All", ...PROGS].map(p => `<button class="chip" type="button" aria-pressed="${p===progFilter}" data-p="${esc(p)}">${esc(p)}</button>`).join("");
+}
+chipsEl.addEventListener("click", e => { const c = e.target.closest(".chip"); if (!c) return; progFilter = c.dataset.p; renderChips(); renderModules(); });
+$("#mod-search").addEventListener("input", renderModules);
+
+/* Cert HE note + level text */
+const CERT_NOTE = `<div class="note-box"><b>Cert HE in Planning Practice students study alongside BSc Urban Planning students.</b>
+  In <b>Year 1</b> they take Researching the City, Healthy Sustainable Communities, and Communities, Neighbourhood and Participation.
+  In <b>Year 2</b> they take Independent Project, Planning Global Cities, and Professional Development and Practice (taken by Cert HE students only).
+  Hand-in dates are the same as for the BSc cohort.</div>`;
+function levelHtml(m){
+  const vals = [...new Set(Object.values(m.yf))];
+  if (vals.length === 1) return esc(vals[0]);
+  return m.progs.map(p => `${esc(m.yf[p])} <span class="code">· ${esc(p)}</span>`).join("<br>");
+}
+
+function renderModules(){
+  const q = $("#mod-search").value.trim().toLowerCase();
+  const match = m => !q || [m.title, m.code, m.lead].some(s => s.toLowerCase().includes(q));
+  const progs = progFilter === "All" ? PROGS : [progFilter];
+  let html = `<p class="list-hint">Click a module title to learn more about it</p>`, any = false;
+  progs.forEach(p => {
+    const mods = Object.values(MODULES).filter(m => m.progs.includes(p) && match(m));
+    if (!mods.length) return;
+    any = true;
+    html += `<section class="prog"><h2>${esc(p)}</h2>${PROG_LEADERS[p] ? `<p class="pm">${plLabel(p)}: ${esc(plJoin(p))}</p>` : ""}${p === CERT ? `<p class="pm">Taken alongside BSc Urban Planning students</p>` : ""}`;
+    [...new Set(mods.map(m => m.yf[p]))].sort(byLevel).forEach(lv => {
+      html += `<div class="lvl">${esc(lv)}</div><ul class="mlist">`;
+      mods.filter(m => m.yf[p] === lv).sort((a,b) => a.title.localeCompare(b.title)).forEach(m => {
+        const on = selected && selected.code === m.code && selected.prog === p;
+        html += `<li><button class="li" type="button" data-pick="${esc(m.code)}" data-p="${esc(p)}"${on ? ' aria-current="true"' : ""}>
+          <span class="t">${esc(m.title)}</span>
+          <span class="s">${esc(m.code)}${m.exam ? " · Exam" : ""}${m.progs.length > 1 ? " · Shared" : ""}</span>
+        </button></li>`;
+      });
+      html += `</ul>`;
+    });
+    html += `</section>`;
+  });
+  $("#prog-list").innerHTML = any ? html : `<div class="empty">No modules match your search.</div>`;
+  placeDetail();
+}
+
+function detailHtml(m, ctx){
+  const L = leaders(m.lead);
+  const info = MODINFO[m.code];
+  const cy = m.yf[ctx];
+  return `
+  <div class="mc-h">
+    <div class="code">${esc(m.code)}</div>
+    <h3 id="mc-title">${esc(m.title)}</h3>
+  </div>
+  <div class="mc-b">
+    ${ctx === CERT ? CERT_NOTE.replace('class="note-box"', 'class="note-box" style="margin:0 0 18px"') : ""}
+    <dl class="kv">
+      <dt>Module leader${L.length > 1 ? "s" : ""}</dt><dd>${L.map(esc).join("<br>")}</dd>
+      <dt>Year / level</dt><dd>${levelHtml(m)}</dd>
+      ${info ? `<dt>Taught in</dt><dd>${esc(info.term)}</dd>` : ""}
+      <dt>Programme${m.progs.length > 1 ? "s" : ""}</dt><dd>${m.progs.map(p => `<div class="prog-row"><span class="pill">${esc(p)}</span>${PROG_LEADERS[p] ? `<span class="pl">${plLabel(p)}: ${esc(plJoin(p))}</span>` : ""}</div>`).join("")}</dd>
+    </dl>
+    ${info ? `<h4>About this module</h4><p class="desc">${esc(info.desc)}</p>` : ""}
+    ${m.exam ? `<h4>Assessment</h4><div class="exam-note"><b>Assessed by examination.</b> ${EXAM_NOTE}</div>` : `<h4>Hand-ins (${m.items.length})</h4>`}
+    ${m.items.map(r => `<div class="hi${r.d < TODAY ? " past" : ""}">
+      <div class="cal"><div class="mo">${MONTHS[r.d.getMonth()]}</div><div class="dd">${r.d.getDate()}</div><div class="yy">${r.d.getFullYear()}</div></div>
+      <div class="bd"><div class="a">${esc(r.ass)}</div><div class="s">${esc(r.type)} · ${fmtLong(r.d)}</div><div style="margin-top:5px">${statusPill(r.d)}</div></div>
+    </div>`).join("")}
+  </div>
+  <div class="mc-f"><button class="btn" type="button" data-go="${esc(m.code)}" data-p="${esc(ctx)}">See the full ${esc(cy)} timeline for ${esc(ctx)}</button></div>`;
+}
+
+const EMPTY_DETAIL = `<div class="detail-empty">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+  <p><b>Click a module title to learn more about it.</b><br>You'll see its description, module leader, when it's taught and every hand-in date here.</p></div>`;
+
+/* put the detail in the right-hand pane (wide screens) or open it under the module in the list (narrow screens) */
+function placeDetail(){
+  document.querySelectorAll(".inline-detail").forEach(n => n.remove());
+  const pane = $("#mod-detail");
+  const m = selected && MODULES[selected.code];
+  if (!m) { pane.innerHTML = EMPTY_DETAIL; return; }
+  const html = detailHtml(m, selected.prog);
+  if (narrow.matches) {
+    pane.innerHTML = "";
+    const btn = document.querySelector(`.li[data-pick="${CSS.escape(selected.code)}"][data-p="${CSS.escape(selected.prog)}"]`);
+    if (btn) { const d = document.createElement("div"); d.className = "inline-detail"; d.innerHTML = html; btn.parentElement.appendChild(d); }
+  } else {
+    pane.innerHTML = html;
+    pane.scrollTop = 0;
+  }
+}
+narrow.addEventListener("change", placeDetail);
+
+function selectModule(code, prog, scroll){
+  const m = MODULES[code]; if (!m) return;
+  const p = prog && m.progs.includes(prog) ? prog : m.progs[0];
+  const same = selected && selected.code === code && selected.prog === p;
+  selected = (same && narrow.matches) ? null : { code, prog: p };   // tapping again closes it on phones
+  document.querySelectorAll(".li[aria-current]").forEach(b => b.removeAttribute("aria-current"));
+  if (selected) document.querySelector(`.li[data-pick="${CSS.escape(code)}"][data-p="${CSS.escape(p)}"]`)?.setAttribute("aria-current", "true");
+  placeDetail();
+  if (scroll) {
+    const target = narrow.matches ? document.querySelector(".inline-detail") : $(".mod-layout");
+    target?.scrollIntoView({ behavior: "smooth", block: "start" });
+  } else if (!narrow.matches) {
+    const lay = $(".mod-layout").getBoundingClientRect();
+    if (lay.top < 0) $(".mod-layout").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+}
+
+document.addEventListener("click", e => {
+  const pick = e.target.closest("[data-pick]");
+  if (pick) { selectModule(pick.dataset.pick, pick.dataset.p, false); return; }
+  const go = e.target.closest("[data-go]");
+  if (go) {
+    const m = MODULES[go.dataset.go];
+    state.prog = go.dataset.p; state.year = m.yf[go.dataset.p];
+    fillYears(); render(); showTab("tab-timeline"); scrollTo({ top: 0, behavior: "smooth" });
+    return;
+  }
+  const b = e.target.closest("[data-mod]");   // module names on the timeline tab
+  if (b) {
+    progFilter = state.prog; $("#mod-search").value = "";
+    renderChips(); renderModules();
+    showTab("tab-modules");
+    selectModule(b.dataset.mod, state.prog, true);
+  }
+});
+
+/* init */
+fillYears(); render(); renderChips(); renderModules();
+</script>
+</body>
+</html>
